@@ -979,7 +979,7 @@ async function start() {
   actClear(); const again = addBtn("Xem lại từ đầu"); await waitEl(again); start();
 }
 requestAnimationFrame(frame);
-start();
+/* start() được gọi sau khi mở khóa ở trang mật mã */
 
 
 /* ---------- Gửi cho người tạo + hộp thư + công tắc hiệu ứng ---------- */
@@ -1053,4 +1053,444 @@ start();
 })();
 </script>
 
+
+<iframe id="lockFrame" title="Nhập mật mã" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;vi&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1, viewport-fit=cover&quot;&gt;
+&lt;title&gt;Mật mã&lt;/title&gt;
+&lt;style&gt;
+:root{
+  --ink:#5a1633; --ink2:#9b5a74; --rose:#e8456b; --bad:#c0143c;
+  --spring:cubic-bezier(.34,1.56,.64,1);   /* nảy nhẹ kiểu iOS */
+  --smooth:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:&quot;Segoe UI&quot;,&quot;Helvetica Neue&quot;,Arial,sans-serif;color:var(--ink);
+  background:radial-gradient(1200px 700px at 20% 10%,#ffe3ee 0,transparent 60%),
+             radial-gradient(900px 600px at 90% 90%,#ffc7da 0,transparent 55%),#ffd9e6;
+  display:grid;place-items:center;overflow:hidden;
+  padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));
+}
+#rain{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;will-change:transform;transform:translateZ(0)}
+
+#tapfx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:40}
+
+/* ---------- Màn mở đầu: tải trái tim ---------- */
+.intro{position:fixed;inset:0;z-index:20;display:grid;place-items:center;
+  background:radial-gradient(900px 600px at 50% 40%,#ffe9f1,#ffd0e0 70%);
+  transition:opacity .7s var(--smooth) .1s}
+.intro .wrap{position:relative;width:112px;height:112px;display:grid;place-items:center;
+  transition:transform .6s var(--smooth),opacity .5s ease}
+.intro svg.ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.intro .ring circle{fill:none;stroke-width:2.5;stroke-linecap:round}
+.intro .ring .bg{stroke:rgba(232,69,107,.18)}
+.intro .ring .fg{stroke:var(--rose);stroke-dasharray:289;stroke-dashoffset:289;animation:fill 1.5s cubic-bezier(.45,.05,.3,1) forwards}
+@keyframes fill{to{stroke-dashoffset:0}}
+.intro .heart{width:54px;height:54px;fill:var(--rose);filter:drop-shadow(0 6px 14px rgba(232,69,107,.45));
+  animation:beat 1s ease-in-out infinite;transform-origin:center}
+@keyframes beat{0%,100%{transform:scale(1)}18%{transform:scale(1.16)}34%{transform:scale(1)}50%{transform:scale(1.1)}66%{transform:scale(1)}}
+.intro.leave{opacity:0;pointer-events:none}
+.intro.leave .wrap{transform:scale(.55);opacity:0}
+
+/* ---------- Khung chính ---------- */
+.card{
+  position:relative;z-index:1;width:min(860px,100%);min-height:min(520px,92vh);
+  display:grid;grid-template-columns:1fr 1fr;border-radius:26px;overflow:hidden;
+  background:linear-gradient(135deg,rgba(255,232,242,.97),rgba(255,214,230,.95));will-change:transform;
+  box-shadow:0 30px 80px rgba(190,60,110,.28),0 2px 0 rgba(255,255,255,.7) inset;
+}
+.js-intro .card{opacity:0;transform:scale(.93) translateY(14px)}
+.js-intro .card.in{opacity:1;transform:none;transition:opacity .5s ease,transform .8s var(--spring)}
+/* các phần tử trồi lên lần lượt */
+.js-intro .rv{opacity:0}
+.card.in .rv{animation:rise .7s var(--spring) both;animation-delay:var(--d,0s)}
+@keyframes rise{from{opacity:0;transform:translateY(16px) scale(.94)}to{opacity:1;transform:none}}
+
+.pic{
+  position:relative;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;padding:26px;
+  background:linear-gradient(180deg,rgba(60,10,30,0) 40%,rgba(60,10,30,.72)),
+             radial-gradient(circle at 30% 25%,#ffb8cf,#e0708f 60%,#a84465);
+  background-size:cover;background-position:center;
+}
+.pic.has{background-image:linear-gradient(180deg,rgba(60,10,30,0) 45%,rgba(60,10,30,.75)),var(--img)}
+.pic .big{position:absolute;inset:0;display:grid;place-items:center;font-size:120px;opacity:.28;filter:blur(1px)}
+.pic.has .big{display:none}
+.pic small{letter-spacing:.28em;font-size:.72rem;opacity:.9}
+.pic h2{font-size:1.9rem;margin:6px 0 4px;color:#ff9db8;text-shadow:0 2px 12px rgba(80,0,30,.4);font-weight:700}
+.pic h2 i{font-style:normal;color:#ff2d55}
+.pic p{font-size:.78rem;opacity:.92}
+
+.pad{padding:30px 34px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.logo{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.55);display:grid;place-items:center;font-size:26px;box-shadow:0 6px 18px rgba(232,69,107,.25)}
+.pad h1{font-size:1.5rem;margin:14px 0 6px}
+.pad .sub{font-size:.78rem;color:var(--ink2);line-height:1.5;max-width:230px}
+
+/* chấm mật mã: không còn ô nền */
+.dots{display:flex;gap:22px;justify-content:center;align-items:center;margin:22px 0 12px;height:30px}
+.dots i{position:relative;display:block;width:14px;height:14px;border-radius:50%;
+  border:2px solid rgba(232,69,107,.55);background:transparent;will-change:transform;
+  transition:background-color .12s,border-color .12s,box-shadow .12s}
+.dots i.on{background:var(--rose);border-color:var(--rose);box-shadow:0 2px 10px rgba(232,69,107,.5)}
+.dots i b{position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--rose);opacity:0;pointer-events:none}
+.dots.bad i{border-color:var(--bad)}
+.dots.bad i.on{background:var(--bad);box-shadow:0 2px 10px rgba(192,20,60,.45)}
+.msg{height:1.1em;font-size:.76rem;color:var(--bad);margin-bottom:10px;opacity:0;transform:translateY(-4px);transition:opacity .2s,transform .3s var(--spring)}
+.msg.show{opacity:1;transform:none}
+
+/* phím tròn, nảy kiểu iOS */
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:11px 0;width:min(250px,100%);justify-items:center}
+.keys button{
+  font:600 1.1rem inherit;font-family:inherit;color:var(--ink);width:54px;height:54px;border-radius:50%;
+  background:rgba(255,255,255,.35);border:1.5px solid rgba(232,69,107,.45);cursor:pointer;
+  touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+  will-change:transform;
+  transition:transform .55s var(--spring),background-color .45s ease,border-color .45s ease,box-shadow .45s ease;
+}
+.keys button.p{transform:scale(.9);background:rgba(255,255,255,.92);border-color:var(--rose);
+  box-shadow:0 0 0 6px rgba(232,69,107,.14);transition:transform .09s ease-out,background-color .06s,border-color .06s,box-shadow .09s}
+@media (hover:hover){.keys button:hover{background:rgba(255,255,255,.6);border-color:var(--rose)}}
+.keys .ghost{color:var(--ink2);font-weight:500;font-size:.92rem}
+.keys .sp{width:54px;height:54px;visibility:hidden}
+.keys button:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+
+/* gợi ý */
+.hintbtn{margin-top:14px;font:600 .86rem inherit;font-family:inherit;color:var(--rose);background:rgba(255,255,255,.55);
+  border:1.5px solid rgba(232,69,107,.45);border-radius:999px;padding:9px 20px;cursor:pointer;touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;will-change:transform;
+  transition:transform .55s var(--spring),background-color .4s,border-color .4s,box-shadow .4s}
+.hintbtn.p{transform:scale(.92);background:rgba(255,255,255,.95);border-color:var(--rose);box-shadow:0 0 0 6px rgba(232,69,107,.14);transition:transform .09s ease-out,background-color .06s,box-shadow .09s}
+.hintbtn:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+.hintbtn.nudge{animation:nudge 1.1s var(--spring) 2}
+@keyframes nudge{0%,100%{transform:scale(1)}30%{transform:scale(1.12)}60%{transform:scale(.97)}}
+.modal{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:24px;background:rgba(90,22,51,.32);
+  opacity:0;pointer-events:none;transition:opacity .3s ease}
+.modal.show{opacity:1;pointer-events:auto}
+.sheet{width:min(320px,100%);padding:26px 22px 18px;border-radius:26px;text-align:center;
+  background:linear-gradient(160deg,#fff7fa,#ffe3ee);box-shadow:0 30px 70px rgba(120,20,60,.35),0 2px 0 rgba(255,255,255,.8) inset;
+  transform:scale(.8) translateY(14px);opacity:0;transition:transform .55s var(--spring),opacity .25s ease}
+.modal.show .sheet{transform:none;opacity:1}
+.sheet .bulb{font-size:2.4rem;line-height:1}
+.sheet h3{margin:8px 0 8px;font-size:1.15rem;color:var(--ink)}
+.sheet p{font-size:1rem;line-height:1.55;color:var(--ink);margin-bottom:18px}
+.sheet button{font:600 .95rem inherit;font-family:inherit;color:#fff;background:var(--rose);border:0;border-radius:999px;padding:12px 30px;cursor:pointer;
+  touch-action:manipulation;will-change:transform;box-shadow:0 8px 20px rgba(232,69,107,.35);transition:transform .55s var(--spring)}
+.sheet button.p{transform:scale(.93);transition:transform .09s ease-out}
+
+/* mở khóa: trái tim nở ra phủ màn hình rồi chìm vào đêm của trang Ha */
+.bloom{position:fixed;inset:0;z-index:30;pointer-events:none;visibility:hidden}
+.bloom.go{visibility:visible;pointer-events:auto}
+.bloom .pk{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,#fff3f8,#ffc9dc 58%,#ff9ec0);clip-path:circle(0% at 50% 50%);will-change:clip-path}
+.bloom.go .pk{animation:grow .85s cubic-bezier(.5,0,.2,1) forwards}
+@keyframes grow{to{clip-path:circle(80% at 50% 50%)}}
+.bloom .night{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,#0b1226 0%,#05070f 70%);opacity:0}
+.bloom.go .night{animation:fadein .85s ease 1.05s forwards}
+@keyframes fadein{to{opacity:1}}
+.bloom .hrt{position:absolute;left:50%;top:50%;width:88px;height:88px;margin:-44px 0 0 -44px;fill:#e8456b;opacity:0;filter:drop-shadow(0 8px 20px rgba(232,69,107,.5))}
+.bloom.go .hrt{animation:hrt 1.5s cubic-bezier(.34,1.56,.64,1) .5s forwards}
+@keyframes hrt{0%{opacity:0;transform:scale(.3)}28%{opacity:1;transform:scale(1.15)}48%{transform:scale(1)}68%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:scale(1.7)}}
+@media (max-width:640px){
+  body{overflow:auto;align-items:start}
+  .card{grid-template-columns:1fr;min-height:0;margin:auto}
+  .pic{min-height:210px;padding:22px}
+  .pic .big{font-size:100px}
+  .pic h2{font-size:1.75rem}
+  .pic small{letter-spacing:.32em;font-size:.78rem}
+  .pic p{font-size:.86rem}
+  .pad{padding:20px 20px 16px}
+  .logo{width:48px;height:48px;font-size:22px}
+  .pad h1{margin:10px 0 4px}
+}
+@media (prefers-reduced-motion:reduce){
+  #rain{display:none}.intro{display:none}
+  .keys button,.hintbtn,.sheet,.modal,.msg{transition:none}.hintbtn.nudge{animation:none}
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;/* chỉ bật ẩn-hiện khi có JS và không giảm chuyển động */
+if (!matchMedia(&quot;(prefers-reduced-motion:reduce)&quot;).matches) document.documentElement.classList.add(&quot;js-intro&quot;);&lt;/script&gt;
+
+&lt;canvas id=&quot;rain&quot; aria-hidden=&quot;true&quot;&gt;&lt;/canvas&gt;
+&lt;canvas id=&quot;tapfx&quot; aria-hidden=&quot;true&quot;&gt;&lt;/canvas&gt;
+
+&lt;div class=&quot;intro&quot; id=&quot;intro&quot; aria-hidden=&quot;true&quot;&gt;
+  &lt;div class=&quot;wrap&quot;&gt;
+    &lt;svg class=&quot;ring&quot; viewBox=&quot;0 0 100 100&quot;&gt;&lt;circle class=&quot;bg&quot; cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;46&quot;/&gt;&lt;circle class=&quot;fg&quot; cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;46&quot;/&gt;&lt;/svg&gt;
+    &lt;svg class=&quot;heart&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z&quot;/&gt;&lt;/svg&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;main class=&quot;card&quot; id=&quot;card&quot;&gt;
+  &lt;section class=&quot;pic rv&quot; id=&quot;pic&quot; style=&quot;--d:.05s&quot;&gt;
+    &lt;div class=&quot;big&quot; aria-hidden=&quot;true&quot;&gt;💗&lt;/div&gt;
+    &lt;small&gt;LOVE&lt;/small&gt;
+    &lt;h2 id=&quot;title&quot;&gt;&lt;/h2&gt;
+    &lt;p id=&quot;tag&quot;&gt;&lt;/p&gt;
+  &lt;/section&gt;
+
+  &lt;section class=&quot;pad&quot;&gt;
+    &lt;div class=&quot;logo rv&quot; style=&quot;--d:.12s&quot; aria-hidden=&quot;true&quot;&gt;❤️&lt;/div&gt;
+    &lt;h1 class=&quot;rv&quot; style=&quot;--d:.18s&quot; id=&quot;hello&quot;&gt;&lt;/h1&gt;
+    &lt;p class=&quot;sub rv&quot; style=&quot;--d:.24s&quot; id=&quot;sub&quot;&gt;&lt;/p&gt;
+    &lt;div class=&quot;dots rv&quot; style=&quot;--d:.3s&quot; id=&quot;dots&quot; role=&quot;status&quot; aria-live=&quot;polite&quot; aria-label=&quot;Mật mã&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;msg&quot; id=&quot;msg&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;keys rv&quot; style=&quot;--d:.36s&quot; id=&quot;keys&quot;&gt;&lt;/div&gt;
+    &lt;button class=&quot;hintbtn rv&quot; style=&quot;--d:.46s&quot; id=&quot;hintBtn&quot; type=&quot;button&quot;&gt;💡 Gợi ý?&lt;/button&gt;
+  &lt;/section&gt;
+
+&lt;/main&gt;
+
+&lt;div class=&quot;bloom&quot; id=&quot;bloom&quot; aria-hidden=&quot;true&quot;&gt;
+  &lt;div class=&quot;pk&quot;&gt;&lt;/div&gt;&lt;div class=&quot;night&quot;&gt;&lt;/div&gt;
+  &lt;svg class=&quot;hrt&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z&quot;/&gt;&lt;/svg&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;modal&quot; id=&quot;modal&quot; role=&quot;dialog&quot; aria-modal=&quot;true&quot; aria-labelledby=&quot;hintTitle&quot;&gt;
+  &lt;div class=&quot;sheet&quot;&gt;
+    &lt;div class=&quot;bulb&quot; aria-hidden=&quot;true&quot;&gt;💡&lt;/div&gt;
+    &lt;h3 id=&quot;hintTitle&quot;&gt;Gợi ý&lt;/h3&gt;
+    &lt;p id=&quot;hintBox&quot;&gt;&lt;/p&gt;
+    &lt;button type=&quot;button&quot; id=&quot;hintOk&quot;&gt;Đã hiểu&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+/* ===== CẤU HÌNH — chỉ sửa ở đây ===== */
+const CONFIG = {
+  code: &quot;2011&quot;,                 // mật mã (số). Độ dài tự theo mật mã
+  hello: &quot;Chào Huuanh&quot;,
+  sub: &quot;Nhập mật khẩu của chúng ta để bước vào thế giới nhỏ này&quot;,
+  title: &quot;Gửi tặng Hoa Anh&quot;,
+  tag: &quot;Món quà siêu nhỏ nhỏ&quot;,
+  hint: &quot;Một ngày đặc biệt của chúng ta (ngày + tháng)&quot;,   // ← sửa nội dung gợi ý ở đây
+  hintAfterWrong: 2,            // sai bao nhiêu lần thì nút Gợi ý đập nhẹ để gây chú ý (0 = tắt)
+  image: &quot;&quot;,                    // dán đường dẫn/ảnh (data:...) để thay nền bên trái; để trống = nền hồng
+  wrong: &quot;Chưa đúng rồi, thử lại nha&quot;,
+  nextUrl: &quot;&quot;                   // CHƯA nối. Sau này điền link trang &quot;Ha thức dậy&quot; vào đây
+};
+/* ===================================== */
+
+const $ = (s) =&gt; document.querySelector(s);
+const still = matchMedia(&quot;(prefers-reduced-motion:reduce)&quot;).matches;
+const N = CONFIG.code.length;
+$(&quot;#hello&quot;).textContent = CONFIG.hello;
+$(&quot;#sub&quot;).textContent = CONFIG.sub;
+$(&quot;#tag&quot;).textContent = CONFIG.tag;
+$(&quot;#title&quot;).innerHTML = CONFIG.title.replace(/&lt;/g, &quot;&amp;lt;&quot;) + &quot; &lt;i&gt;♥&lt;/i&gt;&quot;;
+$(&quot;#hintBox&quot;).textContent = CONFIG.hint;
+if (CONFIG.image) { const p = $(&quot;#pic&quot;); p.style.setProperty(&quot;--img&quot;, &quot;url(&#x27;&quot; + CONFIG.image + &quot;&#x27;)&quot;); p.classList.add(&quot;has&quot;); }
+
+const dots = $(&quot;#dots&quot;), msg = $(&quot;#msg&quot;), keys = $(&quot;#keys&quot;);
+for (let i = 0; i &lt; N; i++) { const d = document.createElement(&quot;i&quot;); d.appendChild(document.createElement(&quot;b&quot;)); dots.appendChild(d); }
+
+/* nút bấm: co nhẹ khi chạm, bật nảy khi nhả (giữ tối thiểu 90ms để thấy rõ) */
+function pressable(el, fn, onClick) {
+  let t0 = 0, tm = 0;
+  const rel = () =&gt; { clearTimeout(tm); tm = setTimeout(() =&gt; el.classList.remove(&quot;p&quot;), Math.max(0, 90 - (Date.now() - t0))); };
+  el.addEventListener(&quot;pointerdown&quot;, (e) =&gt; { e.preventDefault(); t0 = Date.now(); clearTimeout(tm); el.classList.add(&quot;p&quot;); if (!onClick) fn(); });
+  [&quot;pointerup&quot;, &quot;pointerleave&quot;, &quot;pointercancel&quot;].forEach((ev) =&gt; el.addEventListener(ev, rel));
+  el.addEventListener(&quot;click&quot;, (e) =&gt; {
+    if (onClick) { fn(); return; }                       /* nút đóng: chỉ hành động khi nhả tay */
+    if (Date.now() - lastPtr &gt; 700) { el.classList.add(&quot;p&quot;); t0 = Date.now(); rel(); fn(); }   /* bàn phím: Enter/Space */
+  });
+}
+let lastPtr = 0; addEventListener(&quot;pointerdown&quot;, () =&gt; { lastPtr = Date.now(); }, true);
+[&quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,&quot;5&quot;,&quot;6&quot;,&quot;7&quot;,&quot;8&quot;,&quot;9&quot;,&quot;Xóa&quot;,&quot;0&quot;,&quot;&quot;].forEach((k) =&gt; {
+  if (!k) { const sp = document.createElement(&quot;span&quot;); sp.className = &quot;sp&quot;; keys.appendChild(sp); return; }
+  const b = document.createElement(&quot;button&quot;); b.type = &quot;button&quot;; b.textContent = k;
+  if (k === &quot;Xóa&quot;) { b.className = &quot;ghost&quot;; b.setAttribute(&quot;aria-label&quot;, &quot;Xóa một số&quot;); }
+  pressable(b, () =&gt; press(k)); keys.appendChild(b);
+});
+
+/* chuyển động chấm */
+const EASE = &quot;cubic-bezier(.3,1.7,.5,1)&quot;;
+function popDot(i) {
+  if (still) return; const c = dots.children, d = c[i];
+  d.animate([{ transform: &quot;scale(.6)&quot; }, { transform: &quot;scale(1.65)&quot;, offset: .4 }, { transform: &quot;scale(1.12)&quot; }], { duration: 380, easing: EASE });
+  d.firstChild.animate([{ opacity: .7, transform: &quot;scale(.6)&quot; }, { opacity: 0, transform: &quot;scale(2.2)&quot; }], { duration: 480, easing: &quot;ease-out&quot; });
+  [i - 1, i + 1].forEach((j) =&gt; { if (c[j]) c[j].animate([{ transform: &quot;translateY(0)&quot; }, { transform: &quot;translateY(-4px)&quot;, offset: .35 }, { transform: &quot;translateY(0)&quot; }], { duration: 360, easing: EASE }); });
+}
+function dropDot(i) {
+  if (still) return;
+  dots.children[i].animate([{ transform: &quot;scale(1.12)&quot; }, { transform: &quot;scale(.7)&quot;, offset: .4 }, { transform: &quot;scale(1)&quot; }], { duration: 300, easing: EASE });
+}
+let val = &quot;&quot;, locked = false, wrongN = 0;
+function paint(prev) {
+  const c = dots.children;
+  for (let i = 0; i &lt; c.length; i++) {
+    const on = i &lt; val.length, has = c[i].classList.contains(&quot;on&quot;);
+    if (on !== has) { c[i].classList.toggle(&quot;on&quot;, on); if (on) popDot(i); else if (prev &gt; val.length) dropDot(i); }
+  }
+}
+function press(k) {
+  if (locked || Date.now() - closedAt &lt; 350) return;
+  const prev = val.length;
+  msg.classList.remove(&quot;show&quot;);
+  if (k === &quot;C&quot;) val = &quot;&quot;;
+  else if (k === &quot;Xóa&quot;) val = val.slice(0, -1);
+  else if (val.length &lt; N) val += k;
+  paint(prev);
+  if (val.length === N) check();
+}
+function check() {
+  locked = true;
+  if (val === CONFIG.code) { success(); return; }
+  wrongN++;
+  dots.classList.add(&quot;bad&quot;); msg.textContent = CONFIG.wrong; msg.classList.add(&quot;show&quot;);
+  if (!still) dots.animate([{ transform: &quot;translateX(0)&quot; }, { transform: &quot;translateX(-10px)&quot;, offset: .2 }, { transform: &quot;translateX(9px)&quot;, offset: .4 }, { transform: &quot;translateX(-6px)&quot;, offset: .6 }, { transform: &quot;translateX(3px)&quot;, offset: .8 }, { transform: &quot;translateX(0)&quot; }], { duration: 420, easing: &quot;ease-out&quot; });
+  if (navigator.vibrate) try { navigator.vibrate(80); } catch (e) {}
+  if (CONFIG.hintAfterWrong &amp;&amp; wrongN &gt;= CONFIG.hintAfterWrong) { hintBtn.classList.remove(&quot;nudge&quot;); void hintBtn.offsetWidth; hintBtn.classList.add(&quot;nudge&quot;); }
+  setTimeout(() =&gt; { dots.classList.remove(&quot;bad&quot;); const p = val.length; val = &quot;&quot;; paint(p); locked = false; }, 480);
+}
+let unlocked = false;
+function success() {
+  unlocked = true;
+  const card = $(&quot;#card&quot;);
+  if (!still) card.animate([{ transform: &quot;scale(1)&quot; }, { transform: &quot;scale(.965)&quot; }, { transform: &quot;scale(1)&quot; }], { duration: 360, easing: &quot;ease-out&quot; });
+  setTimeout(() =&gt; { $(&quot;#bloom&quot;).classList.add(&quot;go&quot;); if (!still) { start(); burst(); setTimeout(stop, 1800); } }, 260);
+  /* xong: báo cho trang cha (Ha thức dậy) hoặc chuyển trang nếu chạy riêng */
+  setTimeout(() =&gt; {
+    if (window.parent !== window) window.parent.postMessage(&quot;mm-unlocked&quot;, &quot;*&quot;);
+    else if (CONFIG.nextUrl) location.href = CONFIG.nextUrl;
+  }, still ? 600 : 2050);
+}
+addEventListener(&quot;keydown&quot;, (e) =&gt; {
+  if (modal.classList.contains(&quot;show&quot;)) return;
+  if (/^[0-9]$/.test(e.key)) press(e.key);
+  else if (e.key === &quot;Backspace&quot;) press(&quot;Xóa&quot;);
+  else if (e.key === &quot;Escape&quot; || e.key === &quot;Delete&quot;) press(&quot;C&quot;);
+});
+
+/* gợi ý: thẻ nhỏ bật lên giữa màn hình */
+const modal = $(&quot;#modal&quot;), hintBtn = $(&quot;#hintBtn&quot;); let closedAt = 0, openedAt = 0;
+function showHint(on) {
+  if (on === modal.classList.contains(&quot;show&quot;)) return;
+  modal.classList.toggle(&quot;show&quot;, on);
+  if (on) openedAt = Date.now(); else { closedAt = Date.now(); hintBtn.classList.remove(&quot;nudge&quot;); }
+}
+pressable(hintBtn, () =&gt; showHint(true));
+pressable($(&quot;#hintOk&quot;), () =&gt; { if (Date.now() - openedAt &gt; 400) showHint(false); }, true);
+/* chạm ra ngoài thẻ: đóng khi nhả tay (click), bỏ qua cú click &quot;ma&quot; ngay sau khi vừa mở */
+modal.addEventListener(&quot;click&quot;, (e) =&gt; { if (e.target === modal &amp;&amp; Date.now() - openedAt &gt; 400) showHint(false); });
+addEventListener(&quot;keydown&quot;, (e) =&gt; { if (e.key === &quot;Escape&quot; &amp;&amp; modal.classList.contains(&quot;show&quot;)) showHint(false); });
+
+/* ===== mưa trái tim (nhẹ: vẽ sẵn sprite, ít hạt) ===== */
+const cv = $(&quot;#rain&quot;), cx = cv.getContext(&quot;2d&quot;); let W = 0, H = 0, hs = [], raf = 0, running = false;
+const DPR = Math.min(devicePixelRatio || 1, 2);
+function size() { W = innerWidth; H = innerHeight; cv.width = W * DPR; cv.height = H * DPR; cx.setTransform(DPR, 0, 0, DPR, 0, 0); }
+addEventListener(&quot;resize&quot;, size); size();
+const rnd = (a, b) =&gt; a + Math.random() * (b - a);
+const cols = [&quot;#ff5c85&quot;, &quot;#ff8fab&quot;, &quot;#e8456b&quot;, &quot;#ffb3c6&quot;];
+const sprites = cols.map((c) =&gt; {
+  const o = document.createElement(&quot;canvas&quot;); o.width = o.height = 32 * DPR; const g = o.getContext(&quot;2d&quot;); g.scale(DPR, DPR);
+  g.translate(16, 17); g.fillStyle = c; g.beginPath(); const s = 12;
+  g.moveTo(0, s * .3); g.bezierCurveTo(-s, -s * .5, -s * .6, -s * 1.1, 0, -s * .5); g.bezierCurveTo(s * .6, -s * 1.1, s, -s * .5, 0, s * .3); g.fill(); return o;
+});
+const MAX = 14;
+function spawn(x, y, burst) {
+  hs.push({ x: x ?? rnd(0, W), y: y ?? -20, k: rnd(.4, 1), vy: burst ? rnd(-6, -1) : rnd(.6, 1.6), vx: burst ? rnd(-4, 4) : 0, a: rnd(.4, .8), i: (Math.random() * 4) | 0, ph: rnd(0, 6), b: !!burst });
+}
+function burst() { for (let i = 0; i &lt; 16; i++) spawn(W / 2, H / 2, true); }
+let last = 0;
+function loop(t) {
+  if (!running) return;
+  cx.clearRect(0, 0, W, H);
+  if (t - last &gt; 700 &amp;&amp; hs.length &lt; MAX) { spawn(); last = t; }
+  let n = 0;
+  for (let i = 0; i &lt; hs.length; i++) {
+    const h = hs[i];
+    if (h.b) { h.vy += .12; h.a -= .01; } else h.ph += .02;
+    h.x += h.vx + (h.b ? 0 : Math.sin(h.ph) * .35); h.y += h.vy;
+    if (h.y &gt; H + 30 || h.a &lt;= .02) continue;
+    cx.globalAlpha = h.a; const z = 32 * h.k; cx.drawImage(sprites[h.i], h.x - z / 2, h.y - z / 2, z, z); hs[n++] = h;
+  }
+  hs.length = n; raf = requestAnimationFrame(loop);
+}
+function start() { if (running) return; running = true; raf = requestAnimationFrame(loop); }
+function stop() { running = false; cancelAnimationFrame(raf); }
+document.addEventListener(&quot;visibilitychange&quot;, () =&gt; { if (document.hidden) stop(); else if (!still &amp;&amp; !unlocked &amp;&amp; introDone) start(); });
+
+/* ===== hiệu ứng chạm: vòng tròn + trái tim tỏa ra, chạm đâu cũng có ===== */
+const tcv = $(&quot;#tapfx&quot;), tcx = tcv.getContext(&quot;2d&quot;); let ps = [], core = [], traf = 0, tprev = 0;
+function tsize() { tcv.width = innerWidth * DPR; tcv.height = innerHeight * DPR; tcx.setTransform(DPR, 0, 0, DPR, 0, 0); }
+addEventListener(&quot;resize&quot;, tsize); tsize();
+/* sprite riêng cho hiệu ứng chạm: nhiều tông hồng + sao vàng */
+function mk(draw) { const o = document.createElement(&quot;canvas&quot;); o.width = o.height = 32 * DPR; const g = o.getContext(&quot;2d&quot;); g.scale(DPR, DPR); g.translate(16, 16); draw(g); return o; }
+const heartFill = (c) =&gt; mk((g) =&gt; {
+  const s = 12; g.fillStyle = c; g.beginPath(); g.moveTo(0, s * .55); g.bezierCurveTo(-s, -s * .25, -s * .6, -s * .85, 0, -s * .25); g.bezierCurveTo(s * .6, -s * .85, s, -s * .25, 0, s * .55); g.fill();
+});
+const HS = [&quot;#ff4d8d&quot;, &quot;#ff6fa5&quot;, &quot;#ff8fb8&quot;, &quot;#ffa8c8&quot;, &quot;#ffc2d8&quot;, &quot;#e8456b&quot;, &quot;#ff2d7a&quot;].map(heartFill);
+const STAR = mk((g) =&gt; { g.fillStyle = &quot;#ffd84a&quot;; g.beginPath(); for (let i = 0; i &lt; 8; i++) { const r = i % 2 ? 3 : 11, a = i * Math.PI / 4 - Math.PI / 2; g.lineTo(Math.cos(a) * r, Math.sin(a) * r); } g.closePath(); g.fill(); });
+const easeOut = (t) =&gt; 1 - Math.pow(1 - t, 3);
+addEventListener(&quot;pointerdown&quot;, (e) =&gt; {
+  const now = performance.now(), x = e.clientX, y = e.clientY;
+  if (ps.length &gt; 220) ps.splice(0, ps.length - 140);
+  /* chùm trái tim đủ cỡ bắn tung ra mọi hướng */
+  const n = 18;
+  for (let i = 0; i &lt; n; i++) {
+    const a = rnd(0, 6.283), v = rnd(2.2, 7.5);
+    ps.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - rnd(.5, 1.6), r: rnd(-.6, .6), vr: rnd(-.05, .05), k: rnd(.22, .85), sp: HS[(Math.random() * HS.length) | 0], t0: now, life: rnd(950, 1500), ph: rnd(0, 6.28), star: false });
+  }
+  /* vài ngôi sao vàng lấp lánh */
+  for (let i = 0; i &lt; 6; i++) {
+    const a = rnd(0, 6.283), v = rnd(1.5, 5);
+    ps.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - rnd(.2, 1), r: 0, vr: rnd(-.03, .03), k: rnd(.3, .6), sp: STAR, t0: now, life: rnd(700, 1100), ph: rnd(0, 6.28), star: true });
+  }
+  core.push({ x, y, t0: now }); if (core.length &gt; 8) core.shift();
+  if (!traf) { tprev = now; traf = requestAnimationFrame(tloop); }
+}, true);
+function tloop(now) {
+  const dt = Math.min((now - tprev) / 16.67, 3); tprev = now;
+  tcx.clearRect(0, 0, innerWidth, innerHeight);
+  /* tim đậm ở tâm điểm chạm: nảy lên rồi tan */
+  core = core.filter((c) =&gt; now - c.t0 &lt; 600);
+  for (const c of core) {
+    const t = (now - c.t0) / 600, sc = t &lt; .3 ? .3 + 1.1 * easeOut(t / .3) : 1.4 - .4 * easeOut((t - .3) / .7), z = 34 * sc;
+    tcx.globalAlpha = t &lt; .5 ? 1 : 1 - (t - .5) / .5; tcx.drawImage(HS[6], c.x - z / 2, c.y - z / 2, z, z);
+  }
+  const drag = Math.pow(.93, dt); let n = 0;
+  for (let i = 0; i &lt; ps.length; i++) {
+    const p = ps[i], t = (now - p.t0) / p.life; if (t &gt;= 1) continue;
+    p.vx *= drag; p.vy = p.vy * drag - .02 * dt; p.ph += .05 * dt; p.r += p.vr * dt;
+    p.x += (p.vx + Math.sin(p.ph) * .35) * dt; p.y += p.vy * dt;
+    let sc = p.k * (t &lt; .12 ? .3 + 5.8 * t : 1 - .25 * (t - .12) / .88);
+    if (p.star) sc *= .75 + .35 * Math.sin(p.ph * 3);
+    const z = 32 * sc; tcx.globalAlpha = t &lt; .55 ? 1 : 1 - (t - .55) / .45;
+    if (p.r) { tcx.save(); tcx.translate(p.x, p.y); tcx.rotate(p.r); tcx.drawImage(p.sp, -z / 2, -z / 2, z, z); tcx.restore(); }
+    else tcx.drawImage(p.sp, p.x - z / 2, p.y - z / 2, z, z);
+    ps[n++] = p;
+  }
+  ps.length = n; tcx.globalAlpha = 1;
+  if (ps.length || core.length) traf = requestAnimationFrame(tloop); else { traf = 0; tcx.clearRect(0, 0, innerWidth, innerHeight); }
+}
+
+/* ===== màn mở đầu -&gt; khung nhập mật mã ===== */
+let introDone = false;
+function enter() { introDone = true; $(&quot;#card&quot;).classList.add(&quot;in&quot;); if (!still) start(); }
+if (still) { introDone = true; }
+else {
+  setTimeout(() =&gt; $(&quot;#intro&quot;).classList.add(&quot;leave&quot;), 1650);   /* tải xong: trái tim thu nhỏ, nền mờ dần */
+  setTimeout(enter, 1900);                                       /* khung bật vào kiểu iOS */
+  setTimeout(() =&gt; $(&quot;#intro&quot;).remove(), 2800);
+}
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+" style="position:fixed;inset:0;width:100%;height:100%;border:0;z-index:1000;background:#ffd9e6;transition:opacity .7s ease"></iframe>
+<script>
+(function(){
+  var f = document.getElementById("lockFrame");
+  addEventListener("message", function(e){
+    if (e.source !== f.contentWindow || e.data !== "mm-unlocked") return;
+    try { playMusic(); } catch (x) {}
+    start();                                   /* Ha bắt đầu thức dậy ngay phía sau */
+    f.style.opacity = "0"; f.style.pointerEvents = "none";
+    setTimeout(function(){ f.remove(); }, 900);
+  });
+})();
+</script>
 </body></html>
