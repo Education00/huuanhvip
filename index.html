@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name="theme-color" content="#ffd9e6" id="themeColor"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Ha thức dậy</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Be+Vietnam+Pro:wght@400;500;600&family=JetBrains+Mono:wght@500;600;800&display=swap">
@@ -1053,20 +1053,27 @@ requestAnimationFrame(frame);
 })();
 </script>
 
-
-<iframe id="lockFrame" title="Nhập mật mã" srcdoc="&lt;!doctype html&gt;
+<style id="lockCss">
+html.locked, html.locked body { background: #ffd9e6 !important; }
+#lockWrap { position: fixed; inset: 0; z-index: 1000; background: #ffd9e6; padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); transition: opacity .7s ease; }
+#lockFrame { display: block; width: 100%; height: 100%; border: 0; background: #ffd9e6; }
+</style>
+<div id="lockWrap"><iframe id="lockFrame" title="Nhập mật mã" srcdoc="&lt;!doctype html&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;meta charset=&quot;utf-8&quot;&gt;
 &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1, viewport-fit=cover&quot;&gt;
+&lt;meta name=&quot;theme-color&quot; content=&quot;#ffd9e6&quot;&gt;
 &lt;title&gt;Mật mã&lt;/title&gt;
 &lt;style&gt;
 :root{
   --ink:#5a1633; --ink2:#9b5a74; --rose:#e8456b; --bad:#c0143c;
+  --k:54px;
   --spring:cubic-bezier(.34,1.56,.64,1);   /* nảy nhẹ kiểu iOS */
   --smooth:cubic-bezier(.22,1,.36,1);
 }
 *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html{background:#ffd9e6}
 html,body{height:100%}
 body{
   font-family:&quot;Segoe UI&quot;,&quot;Helvetica Neue&quot;,Arial,sans-serif;color:var(--ink);
@@ -1144,7 +1151,7 @@ body{
 /* phím tròn, nảy kiểu iOS */
 .keys{display:grid;grid-template-columns:repeat(3,1fr);gap:11px 0;width:min(250px,100%);justify-items:center}
 .keys button{
-  font:600 1.1rem inherit;font-family:inherit;color:var(--ink);width:54px;height:54px;border-radius:50%;
+  font:600 1.1rem inherit;font-family:inherit;color:var(--ink);width:var(--k);height:var(--k);border-radius:50%;
   background:rgba(255,255,255,.35);border:1.5px solid rgba(232,69,107,.45);cursor:pointer;
   touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
   will-change:transform;
@@ -1154,7 +1161,7 @@ body{
   box-shadow:0 0 0 6px rgba(232,69,107,.14);transition:transform .09s ease-out,background-color .06s,border-color .06s,box-shadow .09s}
 @media (hover:hover){.keys button:hover{background:rgba(255,255,255,.6);border-color:var(--rose)}}
 .keys .ghost{color:var(--ink2);font-weight:500;font-size:.92rem}
-.keys .sp{width:54px;height:54px;visibility:hidden}
+.keys .sp{width:var(--k);height:var(--k);visibility:hidden}
 .keys button:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
 
 /* gợi ý */
@@ -1193,16 +1200,21 @@ body{
 .bloom.go .hrt{animation:hrt 1.5s cubic-bezier(.34,1.56,.64,1) .5s forwards}
 @keyframes hrt{0%{opacity:0;transform:scale(.3)}28%{opacity:1;transform:scale(1.15)}48%{transform:scale(1)}68%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:scale(1.7)}}
 @media (max-width:640px){
-  body{overflow:auto;align-items:start}
+  :root{--k:clamp(40px,6.6vh,54px)}
+  body{overflow:auto;align-items:center;padding:max(10px,env(safe-area-inset-top)) 12px max(10px,env(safe-area-inset-bottom))}
   .card{grid-template-columns:1fr;min-height:0;margin:auto}
-  .pic{min-height:210px;padding:22px}
-  .pic .big{font-size:100px}
-  .pic h2{font-size:1.75rem}
-  .pic small{letter-spacing:.32em;font-size:.78rem}
-  .pic p{font-size:.86rem}
-  .pad{padding:20px 20px 16px}
-  .logo{width:48px;height:48px;font-size:22px}
-  .pad h1{margin:10px 0 4px}
+  .pic{min-height:0;height:clamp(108px,19vh,190px);padding:14px 20px}
+  .pic .big{font-size:clamp(50px,9vh,90px)}
+  .pic h2{font-size:clamp(1.25rem,3.4vh,1.7rem);margin:4px 0 3px}
+  .pic small{font-size:.72rem}
+  .pic p{font-size:.8rem}
+  .pad{padding:clamp(10px,2vh,20px) 20px clamp(8px,1.6vh,16px)}
+  .logo{width:clamp(38px,5.4vh,48px);height:clamp(38px,5.4vh,48px);font-size:clamp(18px,2.6vh,22px)}
+  .pad h1{font-size:clamp(1.2rem,3.1vh,1.45rem);margin:clamp(6px,1.2vh,12px) 0 4px}
+  .pad .sub{font-size:.74rem;line-height:1.4}
+  .dots{margin:clamp(12px,2.2vh,22px) 0 clamp(6px,1.2vh,12px);height:26px}
+  .keys{gap:clamp(7px,1.2vh,11px) 0}
+  .hintbtn{margin-top:clamp(8px,1.4vh,14px);padding:7px 18px}
 }
 @media (prefers-reduced-motion:reduce){
   #rain{display:none}.intro{display:none}
@@ -1480,16 +1492,18 @@ else {
 &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
-" style="position:fixed;inset:0;width:100%;height:100%;border:0;z-index:1000;background:#ffd9e6;transition:opacity .7s ease"></iframe>
+"></iframe></div>
 <script>
 (function(){
-  var f = document.getElementById("lockFrame");
+  var w = document.getElementById("lockWrap"), f = document.getElementById("lockFrame"), tc = document.getElementById("themeColor");
+  document.documentElement.classList.add("locked");
   addEventListener("message", function(e){
     if (e.source !== f.contentWindow || e.data !== "mm-unlocked") return;
     try { playMusic(); } catch (x) {}
     start();                                   /* Ha bắt đầu thức dậy ngay phía sau */
-    f.style.opacity = "0"; f.style.pointerEvents = "none";
-    setTimeout(function(){ f.remove(); }, 900);
+    document.documentElement.classList.remove("locked"); if (tc) tc.setAttribute("content", "#05070f");
+    w.style.opacity = "0"; w.style.pointerEvents = "none";
+    setTimeout(function(){ w.remove(); }, 900);
   });
 })();
 </script>
