@@ -1055,9 +1055,11 @@ requestAnimationFrame(frame);
 
 <style id="lockCss">
 html.locked, html.locked body { background: #ffd9e6 !important; }
-#lockWrap { position: fixed; inset: 0; z-index: 1000; background: #ffd9e6; padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); transition: opacity .7s ease; }
+#lockWrap { position: fixed; inset: 0; z-index: 1000; background: #ffd9e6; transition: opacity .7s ease; }
 #lockFrame { display: block; width: 100%; height: 100%; border: 0; background: #ffd9e6; }
+#insetProbe { position: fixed; left: 0; top: 0; width: 0; height: 0; visibility: hidden; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 </style>
+<div id="insetProbe"></div>
 <div id="lockWrap"><iframe id="lockFrame" title="Nhập mật mã" srcdoc="&lt;!doctype html&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
@@ -1200,21 +1202,23 @@ body{
 .bloom.go .hrt{animation:hrt 1.5s cubic-bezier(.34,1.56,.64,1) .5s forwards}
 @keyframes hrt{0%{opacity:0;transform:scale(.3)}28%{opacity:1;transform:scale(1.15)}48%{transform:scale(1)}68%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:scale(1.7)}}
 @media (max-width:640px){
-  :root{--k:clamp(40px,6.6vh,54px)}
-  body{overflow:auto;align-items:center;padding:max(10px,env(safe-area-inset-top)) 12px max(10px,env(safe-area-inset-bottom))}
-  .card{grid-template-columns:1fr;min-height:0;margin:auto}
-  .pic{min-height:0;height:clamp(108px,19vh,190px);padding:14px 20px}
-  .pic .big{font-size:clamp(50px,9vh,90px)}
-  .pic h2{font-size:clamp(1.25rem,3.4vh,1.7rem);margin:4px 0 3px}
-  .pic small{font-size:.72rem}
-  .pic p{font-size:.8rem}
-  .pad{padding:clamp(10px,2vh,20px) 20px clamp(8px,1.6vh,16px)}
-  .logo{width:clamp(38px,5.4vh,48px);height:clamp(38px,5.4vh,48px);font-size:clamp(18px,2.6vh,22px)}
-  .pad h1{font-size:clamp(1.2rem,3.1vh,1.45rem);margin:clamp(6px,1.2vh,12px) 0 4px}
-  .pad .sub{font-size:.74rem;line-height:1.4}
-  .dots{margin:clamp(12px,2.2vh,22px) 0 clamp(6px,1.2vh,12px);height:26px}
-  .keys{gap:clamp(7px,1.2vh,11px) 0}
-  .hintbtn{margin-top:clamp(8px,1.4vh,14px);padding:7px 18px}
+  :root{--k:clamp(44px,7.6vh,66px)}
+  body{display:block;padding:0;overflow:auto}
+  /* tràn viền: khung phủ kín màn hình, không lề, không bo góc */
+  .card{width:100%;min-height:100vh;min-height:100dvh;margin:0;border-radius:0;box-shadow:none;grid-template-columns:1fr;grid-template-rows:minmax(110px,28%) 1fr}
+  .pic{min-height:0;padding:calc(var(--sat,0px) + 14px) 24px 20px}
+  .pic .big{font-size:clamp(60px,11vh,110px)}
+  .pic h2{font-size:clamp(1.35rem,3.6vh,1.85rem);margin:4px 0 4px}
+  .pic small{font-size:.76rem}
+  .pic p{font-size:.86rem}
+  .pad{padding:clamp(12px,2.4vh,26px) 20px calc(var(--sab,0px) + clamp(12px,2.4vh,24px));justify-content:space-evenly}
+  .logo{width:clamp(40px,6vh,56px);height:clamp(40px,6vh,56px);font-size:clamp(19px,2.9vh,26px)}
+  .pad h1{font-size:clamp(1.25rem,3.2vh,1.55rem);margin:clamp(4px,1vh,10px) 0 4px}
+  .pad .sub{font-size:.78rem;line-height:1.45}
+  .dots{margin:clamp(8px,1.8vh,18px) 0 clamp(4px,1vh,10px);height:28px}
+  .msg{margin-bottom:clamp(2px,.8vh,8px)}
+  .keys{gap:clamp(8px,1.5vh,14px) 0}
+  .hintbtn{margin-top:clamp(6px,1.4vh,14px);padding:9px 22px}
 }
 @media (prefers-reduced-motion:reduce){
   #rain{display:none}.intro{display:none}
@@ -1330,6 +1334,7 @@ function dropDot(i) {
   if (still) return;
   dots.children[i].animate([{ transform: &quot;scale(1.12)&quot; }, { transform: &quot;scale(.7)&quot;, offset: .4 }, { transform: &quot;scale(1)&quot; }], { duration: 300, easing: EASE });
 }
+addEventListener(&quot;message&quot;, (e) =&gt; { const d = e.data; if (d &amp;&amp; d.mmInsets) { const r = document.documentElement.style; r.setProperty(&quot;--sat&quot;, d.t + &quot;px&quot;); r.setProperty(&quot;--sab&quot;, d.b + &quot;px&quot;); } });
 let val = &quot;&quot;, locked = false, wrongN = 0;
 function paint(prev) {
   const c = dots.children;
@@ -1495,8 +1500,10 @@ else {
 "></iframe></div>
 <script>
 (function(){
-  var w = document.getElementById("lockWrap"), f = document.getElementById("lockFrame"), tc = document.getElementById("themeColor");
+  var w = document.getElementById("lockWrap"), f = document.getElementById("lockFrame"), tc = document.getElementById("themeColor"), pr = document.getElementById("insetProbe");
   document.documentElement.classList.add("locked");
+  function sendInsets(){ var cs = getComputedStyle(pr); try { f.contentWindow.postMessage({ mmInsets: 1, t: parseFloat(cs.paddingTop) || 0, b: parseFloat(cs.paddingBottom) || 0 }, "*"); } catch (x) {} }
+  f.addEventListener("load", sendInsets); addEventListener("resize", sendInsets); addEventListener("orientationchange", sendInsets);
   addEventListener("message", function(e){
     if (e.source !== f.contentWindow || e.data !== "mm-unlocked") return;
     try { playMusic(); } catch (x) {}
