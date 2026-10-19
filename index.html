@@ -1489,7 +1489,11 @@ function revealHa() {
   const ha = $("#ha");
   if (!ha) { if (window.parent !== window) window.parent.postMessage("mm-unlocked", "*"); else if (CONFIG.nextUrl) location.href = CONFIG.nextUrl; return; }
   document.documentElement.classList.add("unlocked");
-  const tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.setAttribute("content", "#05070f");
+  /* Safari iOS không đổi màu thanh khi sửa thẻ cũ -> xóa thẻ cũ, tạo thẻ mới, ép vẽ lại */
+  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.remove());
+  const tcn = document.createElement("meta"); tcn.name = "theme-color"; tcn.content = "#05070f"; document.head.appendChild(tcn);
+  const cs = document.querySelector('meta[name="color-scheme"]'); if (cs) cs.setAttribute("content", "dark");
+  document.documentElement.style.background = "#05070f"; document.body.style.background = "#05070f";
   ha.style.opacity = "1"; ha.style.pointerEvents = "auto";
   try { ha.contentWindow.postMessage("ha-start", "*"); } catch (e) {}
   const bl = $("#bloom");
