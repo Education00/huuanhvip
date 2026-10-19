@@ -1489,11 +1489,15 @@ function revealHa() {
   const ha = $("#ha");
   if (!ha) { if (window.parent !== window) window.parent.postMessage("mm-unlocked", "*"); else if (CONFIG.nextUrl) location.href = CONFIG.nextUrl; return; }
   document.documentElement.classList.add("unlocked");
-  /* Safari iOS không đổi màu thanh khi sửa thẻ cũ -> xóa thẻ cũ, tạo thẻ mới, ép vẽ lại */
-  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.remove());
-  const tcn = document.createElement("meta"); tcn.name = "theme-color"; tcn.content = "#05070f"; document.head.appendChild(tcn);
-  const cs = document.querySelector('meta[name="color-scheme"]'); if (cs) cs.setAttribute("content", "dark");
+  /* Đổi màu thanh Safari: sửa thẻ hiện có (không xóa), đặt nền tối trước, rồi ép vẽ lại */
   document.documentElement.style.background = "#05070f"; document.body.style.background = "#05070f";
+  const cs = document.querySelector('meta[name="color-scheme"]'); if (cs) cs.setAttribute("content", "dark");
+  let tc = document.querySelector('meta[name="theme-color"]');
+  if (!tc) { tc = document.createElement("meta"); tc.name = "theme-color"; document.head.appendChild(tc); }
+  tc.setAttribute("content", "#05070f");
+  void document.documentElement.offsetHeight;
+  requestAnimationFrame(() => { tc.setAttribute("content", "#05070f"); window.scrollTo(0, 1); window.scrollTo(0, 0); });
+  setTimeout(() => { tc.setAttribute("content", "#05070f"); }, 300);
   ha.style.opacity = "1"; ha.style.pointerEvents = "auto";
   try { ha.contentWindow.postMessage("ha-start", "*"); } catch (e) {}
   const bl = $("#bloom");
