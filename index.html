@@ -209,7 +209,7 @@ if (!matchMedia("(prefers-reduced-motion:reduce)").matches) document.documentEle
 &lt;meta name=&quot;claude:viewport-fit-sides&quot; content=&quot;cover&quot;&gt;
 &lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600&amp;family=JetBrains+Mono:wght@500;600;800&amp;display=swap&quot;&gt;
 &lt;style&gt;
-/* Bố cục: sân khấu toàn màn hình tối (nền chuyển cảnh, hạt, trang trí, Pi ở giữa, lời thoại, khu tương tác), sau đó gian hàng cuộn bình thường. */
+/* Bố cục: sân khấu toàn màn hình tối (nền chuyển cảnh, hạt, trang trí, Ha ở giữa, lời thoại, khu tương tác), sau đó gian hàng cuộn bình thường. */
 :root {
   --bg: #05070f; --ink: #e9fdff; --muted: #8fb1c4; --cy: #35f3ff; --cy2: #8ff9ff;
   --pink: #ff6fb1; --green: #4dff9a; --gold: #ffd66b; --violet: #9b7bff;
@@ -256,7 +256,7 @@ button { font: inherit; color: inherit; }
 }
 .col &gt; * { pointer-events: auto; }
 
-/* ---------- Pi ---------- */
+/* ---------- Ha ---------- */
 #bot { position: relative; transition: transform 0.35s cubic-bezier(0.2, 1.4, 0.4, 1), opacity 0.9s ease; transform: translate(calc(var(--lx, 0) * 10px), calc(var(--ly, 0) * 7px)); }
 #bot.hide { opacity: 0; transform: scale(0.6); pointer-events: none; }
 .botin { display: flex; gap: calc(var(--e) * 0.45); animation: floaty 5s ease-in-out infinite; }
@@ -484,6 +484,15 @@ html.rm *, html.rm *::before, html.rm *::after { animation-duration: 0.001s !imp
 .grid.single { grid-template-columns: minmax(0, 270px); justify-content: center; }
 .ds { margin: 0; color: var(--ink); opacity: 0.88; font-size: 0.84rem; line-height: 1.5; }
 @media (max-width: 520px) { .ptools .btn { flex: 1 1 100%; } }
+
+#s3d { position: fixed; inset: 0; z-index: 8; background: #05070f; opacity: 0; pointer-events: none; transition: opacity 1.4s ease; touch-action: none; }
+#s3d.on { opacity: 1; pointer-events: auto; }
+#s3d canvas { display: block; width: 100%; height: 100%; }
+#s3d .hint3d { position: absolute; left: 0; right: 0; bottom: max(24px, env(safe-area-inset-bottom, 0px)); text-align: center; font-family: var(--mono); font-size: 0.85rem; color: var(--muted); opacity: 0; transition: opacity 1.2s; pointer-events: none; }
+#s3d .hint3d.show { opacity: 0.85; }
+.ting { font-family: var(--mono); font-size: 0.9rem; letter-spacing: 0.04em; color: var(--gold); text-shadow: 0 0 12px rgba(255, 214, 107, 0.85); animation: tingin 0.8s cubic-bezier(0.2, 1.6, 0.4, 1) both; transition: opacity 0.9s; }
+.ting.off { opacity: 0; }
+@keyframes tingin { from { opacity: 0; transform: translateY(10px) scale(0.8); } }
 &lt;/style&gt;
 &lt;div id=&quot;stage&quot; aria-live=&quot;off&quot;&gt;
   &lt;div class=&quot;bgs&quot; aria-hidden=&quot;true&quot;&gt;
@@ -496,7 +505,7 @@ html.rm *, html.rm *::before, html.rm *::after { animation-duration: 0.001s !imp
   &lt;div id=&quot;deco&quot;&gt;&lt;/div&gt;
 
   &lt;div class=&quot;col&quot;&gt;
-    &lt;div id=&quot;bot&quot; class=&quot;hide m-hide&quot; role=&quot;img&quot; aria-label=&quot;Pi, chú robot có hai con mắt phát sáng&quot;&gt;
+    &lt;div id=&quot;bot&quot; class=&quot;hide m-hide&quot; role=&quot;img&quot; aria-label=&quot;Ha, chú robot có hai con mắt phát sáng&quot;&gt;
       &lt;div class=&quot;botin&quot;&gt;
         &lt;div class=&quot;eye&quot;&gt;&lt;div class=&quot;sq&quot;&gt;&lt;/div&gt;&lt;div class=&quot;gl&quot;&gt;&amp;gt;&lt;/div&gt;&lt;span class=&quot;blush&quot;&gt;////&lt;/span&gt;&lt;/div&gt;
         &lt;div class=&quot;eye&quot;&gt;&lt;div class=&quot;sq&quot;&gt;&lt;/div&gt;&lt;div class=&quot;gl&quot;&gt;&amp;lt;&lt;/div&gt;&lt;span class=&quot;blush&quot;&gt;////&lt;/span&gt;&lt;/div&gt;
@@ -579,6 +588,7 @@ html.rm *, html.rm *::before, html.rm *::after { animation-duration: 0.001s !imp
   &lt;/div&gt;
 &lt;/main&gt;
 
+&lt;div id=&quot;s3d&quot; aria-hidden=&quot;true&quot;&gt;&lt;/div&gt;
 &lt;audio id=&quot;bgm&quot; loop preload=&quot;auto&quot;&gt;&lt;/audio&gt;
 &lt;div id=&quot;cur&quot; aria-hidden=&quot;true&quot;&gt;
   &lt;svg class=&quot;star&quot; viewBox=&quot;0 0 30 30&quot;&gt;&lt;path d=&quot;M15 2l3.6 8.2 8.9.8-6.7 5.9 2 8.7L15 21l-7.8 4.6 2-8.7L2.5 11l8.9-.8z&quot; fill=&quot;#ffd66b&quot; stroke=&quot;#fff6cf&quot; stroke-width=&quot;1.2&quot; stroke-linejoin=&quot;round&quot;/&gt;&lt;/svg&gt;
@@ -622,7 +632,7 @@ const CONFIG = {
     gotClover: [&quot;Nè cầm lấy ii&quot;, &quot;Chúc quỳnh gặp thật nhiều may mắn trong csong và mãi mãi xinh đẹp nhe💝&quot;]
   },
   final: {
-    qTitle: &quot;Pi có 10 câu hỏi nhỏ cho {to}&quot;,
+    qTitle: &quot;Ha có 10 câu hỏi nhỏ cho {to}&quot;,
     qNote: &quot;Viết câu trả lời vào ô, hoặc cứ hỏi trực tiếp rồi bấm đánh dấu nhé.&quot;,
     questions: [
       { q: &quot;Cuối tuần rảnh rỗi, {to} thích làm gì nhất?&quot; },
@@ -644,16 +654,16 @@ const CONFIG = {
   },
   shop: {
     title: &quot;Phần quà *bất ngờ*&quot;,
-    note: &quot;Mỗi bên chỉ có đúng một món, và Pi không được phép tiết lộ bên trong có gì đâu nha.&quot;,
+    note: &quot;Mỗi bên chỉ có đúng một món, và Ha không được phép tiết lộ bên trong có gì đâu nha.&quot;,
     contactHow: &quot;Chọn món rồi nhắn cho mình qua kênh dưới đây, kèm tên món và số lượng nhé.&quot;,
     contactValue: &quot;Facebook: ssociu208&quot;, contactUrl: &quot;https://www.facebook.com/ssociu208&quot;,
     /* art: surprise | surprise2 | keychain | headband | card | candle | giftbox | notebook | tote ; tint: màu nền ảnh ; desc: mô tả dễ thương */
     groups: [
       { name: &quot;Dành cho nữ&quot;, sub: &quot;Một món thôi, nhưng là bất ngờ&quot;, kind: &quot;a&quot;, items: [
-        { name: &quot;Hộp quà bất ngờ cho nữ&quot;, price: &quot;????&quot;, note: &quot;Mở ra mới biết~&quot;, desc: &quot;Hộp quà bí mật được Pi canh giữ cả đêm. Pi không nói bên trong có gì đâu, chỉ biết mở ra là cười toe toét liền!&quot;, art: &quot;surprise&quot;, tint: &quot;#f9c9dc&quot; }
+        { name: &quot;Hộp quà bất ngờ cho nữ&quot;, price: &quot;????&quot;, note: &quot;Mở ra mới biết~&quot;, desc: &quot;Hộp quà bí mật được Ha canh giữ cả đêm. Ha không nói bên trong có gì đâu, chỉ biết mở ra là cười toe toét liền!&quot;, art: &quot;surprise&quot;, tint: &quot;#f9c9dc&quot; }
       ]},
       { name: &quot;Dành cho nam&quot;, sub: &quot;Một món thôi, nhưng là bất ngờ&quot;, kind: &quot;b&quot;, items: [
-        { name: &quot;Hộp quà bất ngờ cho nam&quot;, price: &quot;????&quot;, note: &quot;Mở ra mới biết~&quot;, desc: &quot;Một bất ngờ nho nhỏ được gói thật kỹ. Pi đoán bạn sẽ giả vờ bình tĩnh được đúng ba giây rồi cười thôi à!&quot;, art: &quot;surprise2&quot;, tint: &quot;#c9efdc&quot; }
+        { name: &quot;Hộp quà bất ngờ cho nam&quot;, price: &quot;????&quot;, note: &quot;Mở ra mới biết~&quot;, desc: &quot;Một bất ngờ nho nhỏ được gói thật kỹ. Ha đoán bạn sẽ giả vờ bình tĩnh được đúng ba giây rồi cười thôi à!&quot;, art: &quot;surprise2&quot;, tint: &quot;#c9efdc&quot; }
       ]}
     ],
     footTitle: &quot;Cảm ơn {to} đã ủng hộ&quot;,
@@ -719,7 +729,7 @@ function say(text, o) {
       if (p === &quot;*&quot;) { cls = cls ? &quot;&quot; : &quot;hl&quot;; return; } if (p === &quot;~&quot;) { cls = cls ? &quot;&quot; : &quot;hp&quot;; return; }
       p.split(/(\s+)/).forEach((w) =&gt; {
         if (!w) return; const word = document.createElement(&quot;span&quot;); word.style.whiteSpace = /\s/.test(w) ? &quot;normal&quot; : &quot;nowrap&quot;; if (cls) word.className = cls;
-        w.split(&quot;&quot;).forEach((ch) =&gt; { const s = document.createElement(&quot;span&quot;); s.className = &quot;c&quot;; s.textContent = ch; word.appendChild(s); typeChars.push(s); });
+        Array.from(w).forEach((ch) =&gt; { const s = document.createElement(&quot;span&quot;); s.className = &quot;c&quot;; s.textContent = ch; word.appendChild(s); typeChars.push(s); });
         lineEl.appendChild(word);
       });
     });
@@ -738,7 +748,7 @@ function say(text, o) {
 async function sayAll(arr, o) { for (const t of arr) await say(t, o); }
 lineEl.addEventListener(&quot;click&quot;, () =&gt; { if (typeChars.length) finishType(); });
 
-/* ---------- Nền, cảm xúc, Pi ---------- */
+/* ---------- Nền, cảm xúc, Ha ---------- */
 function bg(name) { document.querySelectorAll(&quot;.bg&quot;).forEach((b) =&gt; b.classList.toggle(&quot;on&quot;, b.dataset.b === name)); }
 const bot = $(&quot;#bot&quot;);
 function mood(m) { bot.classList.remove(&quot;m-happy&quot;, &quot;m-excited&quot;, &quot;m-hide&quot;); if (m) bot.classList.add(&quot;m-&quot; + m); }
@@ -800,7 +810,7 @@ function frame(t) {
   if (grassOn) drawGrass(t);
 }
 
-/* ---------- Con trỏ hình sao/trái tim + Pi nhìn theo ---------- */
+/* ---------- Con trỏ hình sao/trái tim + Ha nhìn theo ---------- */
 const cur = $(&quot;#cur&quot;); let tx = W / 2, ty = H / 2, cx = tx, cy = ty, lastMove = 0, trailT = 0, lx = 0, ly = 0;
 const HIT = &quot;button,a,input,textarea,.item,.clover,.star-b,.heartbub,.rover,.stk-hit,.of,.pslot&quot;;
 if (fine) {
@@ -916,7 +926,7 @@ async function s0(id) {
   guard(id); actClear(); burst(W / 2, H * 0.4, 30, [&quot;cy&quot;, &quot;white&quot;], 1); bot.style.opacity = &quot;&quot;; mood(&quot;&quot;); poke(); await sleep(900); guard(id);
   await sayAll(S.intro.slice(0, 3)); guard(id);
   await say(S.intro[3], { hold: 100 }); guard(id);
-  hint(&quot;chạm vào mắt Pi nè&quot;);
+  hint(&quot;chạm vào mắt Ha nè&quot;);
   for (let n = 0; n &lt; 3; n++) {
     await waitEl(bot); guard(id); actClear(); poke(); const c = center(bot); sticker(c[0], c[1] - 30, n === 2 ? &quot;heart&quot; : &quot;sparkle&quot;); burst(c[0], c[1], 14, [&quot;cy&quot;, &quot;white&quot;], 1);
     if (n === 1) mood(&quot;happy&quot;); await say(S.pokes[n], { hold: 250 }); guard(id); if (n === 1) mood(&quot;&quot;); if (n &lt; 2) hint(&quot;chạm thêm lần nữa nè&quot;);
@@ -1027,7 +1037,7 @@ async function enterShop() {
 }
 const overlay = $(&quot;#overlay&quot;); let lastFocus = null;
 let chosenGift = null; try { chosenGift = JSON.parse(localStorage.getItem(&quot;pi2010_gift&quot;) || &quot;null&quot;); } catch (e) {}
-function chooseGift(it, g) { chosenGift = { name: it.name, group: g &amp;&amp; g.name ? g.name : &quot;&quot; }; try { localStorage.setItem(&quot;pi2010_gift&quot;, JSON.stringify(chosenGift)); } catch (e) {} toast(&quot;Pi đã ghi nhớ món cậu chọn rồi nha&quot;); if (window.__sendRefresh) window.__sendRefresh(); }
+function chooseGift(it, g) { chosenGift = { name: it.name, group: g &amp;&amp; g.name ? g.name : &quot;&quot; }; try { localStorage.setItem(&quot;pi2010_gift&quot;, JSON.stringify(chosenGift)); } catch (e) {} toast(&quot;Ha đã ghi nhớ món cậu chọn rồi nha&quot;); if (window.__sendRefresh) window.__sendRefresh(); }
 function openBuy(it) {
   const SH = CONFIG.shop; lastFocus = document.activeElement; $(&quot;#dlgName&quot;).textContent = it.name; $(&quot;#dlgPrice&quot;).textContent = it.price; $(&quot;#dlgHow&quot;).textContent = F(SH.contactHow); $(&quot;#dlgContact&quot;).value = SH.contactValue;
   const l = $(&quot;#dlgLink&quot;); if (SH.contactUrl) { l.href = SH.contactUrl; l.hidden = false; } else l.hidden = true; overlay.hidden = false; $(&quot;#dlgClose&quot;).focus();
@@ -1178,11 +1188,120 @@ function buildFinal() {
 }
 
 /* ---------- Chạy ---------- */
-const SCENES = [s0, s1, s2, s3, s4];
+
+/* ---------- Cảnh cuối: bầu trời chữ + tim 3D (Three.js) ---------- */
+/* Sửa lời chúc bay trong cảnh 3D ở đây */
+const WORDS3D = [&quot;miss q&quot;, &quot;xinh&quot;, &quot;xinh đẹp&quot;, &quot;iu q&quot;, &quot;cute&quot;, &quot;vui vẻ&quot;, &quot;hạnh phúc&quot;, &quot;20/11&quot;, &quot;luôn cười nhé&quot;, &quot;q xinh nhất&quot;];
+let THREE_P = null;
+function load3d() {
+  if (THREE_P) return THREE_P;
+  const add = (src) =&gt; new Promise((res, rej) =&gt; { const el = document.createElement(&quot;script&quot;); el.src = src; el.onload = res; el.onerror = rej; document.head.appendChild(el); });
+  THREE_P = add(&quot;https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js&quot;).then(() =&gt; add(&quot;https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js&quot;));
+  THREE_P.catch(() =&gt; {});
+  return THREE_P;
+}
+load3d(); /* tải ngầm ngay từ lúc nhập mật mã để tới cuối khỏi chờ */
+function tingSound() {
+  try {
+    const A = window.AudioContext || window.webkitAudioContext; const ac = new A(); if (ac.resume) ac.resume();
+    [[1318, 0], [1760, 0.12]].forEach((p) =&gt; {
+      const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + p[1];
+      o.type = &quot;sine&quot;; o.frequency.value = p[0]; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + 1);
+    });
+  } catch (e) {}
+}
+function run3d() {
+  const host = $(&quot;#s3d&quot;), mobile = matchMedia(&quot;(pointer: coarse)&quot;).matches || innerWidth &lt; 700, K = mobile ? 0.5 : 1;
+  host.innerHTML = &quot;&quot;;
+  const hint3 = document.createElement(&quot;div&quot;); hint3.className = &quot;hint3d&quot;; hint3.textContent = &quot;vuốt để xoay nè&quot;; host.appendChild(hint3);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 2000);
+  const FROM = new THREE.Vector3(260, -40, 380), TO = new THREE.Vector3(75, -12, 105);
+  camera.position.copy(FROM); camera.lookAt(0, 0, 0);
+  const renderer = new THREE.WebGLRenderer({ antialias: !mobile, alpha: true });
+  renderer.setClearColor(0x000000, 0); renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1.5 : 2));
+  host.insertBefore(renderer.domElement, hint3);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.target.set(0, 0, 0); controls.enableDamping = true; controls.dampingFactor = 0.05; controls.maxDistance = 550; controls.minDistance = 20; controls.enabled = false;
+
+  function wordTex(word) {
+    const c = document.createElement(&quot;canvas&quot;); c.width = 512; c.height = 128; const x = c.getContext(&quot;2d&quot;);
+    x.font = &quot;500 54px &#x27;Be Vietnam Pro&#x27;, &#x27;Segoe UI&#x27;, &#x27;Helvetica Neue&#x27;, Arial, sans-serif&quot;; x.textAlign = &quot;center&quot;; x.textBaseline = &quot;middle&quot;;
+    const cx = 256, cy = 64;
+    x.shadowColor = &quot;rgba(255, 20, 95, 0.95)&quot;; x.shadowBlur = 26; x.fillStyle = &quot;rgba(255, 45, 115, 0.9)&quot;; x.fillText(word, cx, cy);
+    x.shadowColor = &quot;rgba(255, 35, 110, 1)&quot;; x.shadowBlur = 12; x.fillStyle = &quot;rgba(255, 155, 195, 0.95)&quot;; x.fillText(word, cx, cy);
+    x.shadowBlur = 0; x.fillStyle = &quot;#fff3f8&quot;; x.fillText(word, cx, cy);
+    const t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearFilter; t.magFilter = THREE.LinearFilter; return t;
+  }
+  const wordMats = WORDS3D.map((w) =&gt; new THREE.MeshBasicMaterial({ map: wordTex(w), transparent: true, side: THREE.DoubleSide, depthWrite: false }));
+  function heartTex() {
+    const c = document.createElement(&quot;canvas&quot;); c.width = c.height = 128; const x = c.getContext(&quot;2d&quot;);
+    x.beginPath(); x.moveTo(64, 42); x.bezierCurveTo(64, 36, 54, 20, 34, 20); x.bezierCurveTo(10, 20, 10, 52, 10, 52); x.bezierCurveTo(10, 74, 34, 96, 64, 114);
+    x.bezierCurveTo(94, 96, 118, 74, 118, 52); x.bezierCurveTo(118, 52, 118, 20, 94, 20); x.bezierCurveTo(74, 20, 64, 36, 64, 42); x.closePath();
+    x.shadowColor = &quot;rgba(255, 30, 15, 0.9)&quot;; x.shadowBlur = 14; x.fillStyle = &quot;#ff2612&quot;; x.fill(); return new THREE.CanvasTexture(c);
+  }
+  function starTex() {
+    const c = document.createElement(&quot;canvas&quot;); c.width = c.height = 32; const x = c.getContext(&quot;2d&quot;), g = x.createRadialGradient(16, 16, 0, 16, 16, 16);
+    g.addColorStop(0, &quot;rgba(255,255,255,1)&quot;); g.addColorStop(0.4, &quot;rgba(255,245,250,0.95)&quot;); g.addColorStop(0.7, &quot;rgba(255,200,225,0.35)&quot;); g.addColorStop(1, &quot;rgba(255,255,255,0)&quot;);
+    x.fillStyle = g; x.fillRect(0, 0, 32, 32); return new THREE.CanvasTexture(c);
+  }
+  const heartT = heartTex(), starT = starTex();
+  const items = [], RX = 520, RY = 420, RZ = 480;
+  const put = (mesh, s0, s1) =&gt; { mesh.position.set((Math.random() - 0.5) * RX, (Math.random() - 0.5) * RY, (Math.random() - 0.5) * RZ); const k = s0 + Math.random() * s1; mesh.scale.set(k, k, 1); scene.add(mesh); };
+  const planeGeo = new THREE.PlaneGeometry(42, 10.5), nW = Math.round(380 * K);
+  for (let i = 0; i &lt; nW; i++) { const m = new THREE.Mesh(planeGeo, wordMats[i % wordMats.length]); put(m, 0.65, 0.95); items.push({ mesh: m, speed: 0.25 + Math.random() * 0.35 }); }
+  const heartMat = new THREE.MeshBasicMaterial({ map: heartT, transparent: true, side: THREE.DoubleSide, depthWrite: false }), heartGeo = new THREE.PlaneGeometry(9.5, 9.5), nH = Math.round(130 * K);
+  for (let i = 0; i &lt; nH; i++) { const m = new THREE.Mesh(heartGeo, heartMat); put(m, 0.65, 1.15); items.push({ mesh: m, speed: 0.3 + Math.random() * 0.45 }); }
+  function layer(count, spread, size, op, att) {
+    count = Math.round(count * K); const geo = new THREE.BufferGeometry(), pos = new Float32Array(count * 3);
+    for (let i = 0; i &lt; count * 3; i++) pos[i] = (Math.random() - 0.5) * spread;
+    geo.setAttribute(&quot;position&quot;, new THREE.BufferAttribute(pos, 3));
+    const p = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffffff, map: starT, size: size, sizeAttenuation: att, transparent: true, opacity: op, depthWrite: false, blending: THREE.AdditiveBlending }));
+    scene.add(p); return p;
+  }
+  const dust = layer(10000, 1100, 1.5, 0.8, false), deep = layer(7000, 900, 2.2, 0.85, true), mid = layer(3500, 620, 2.8, 0.95, true), near = layer(1500, 420, 3.5, 1.0, true);
+
+  host.classList.add(&quot;on&quot;);                       /* nền đêm mờ dần phủ lên cảnh Ha */
+  setTimeout(() =&gt; { setAmbient(&quot;none&quot;); $(&quot;#stage&quot;).style.visibility = &quot;hidden&quot;; }, 1600);
+  setTimeout(() =&gt; hint3.classList.add(&quot;show&quot;), 5200); setTimeout(() =&gt; hint3.classList.remove(&quot;show&quot;), 11000);
+
+  const clock = new THREE.Clock(), t0 = performance.now(); let flying = true, raf = 0;
+  function frame3() {
+    raf = requestAnimationFrame(frame3);
+    const el = clock.getElapsedTime();
+    for (let i = 0; i &lt; wordMats.length; i++) { const mx = (Math.sin(el * 1.5 + i * Math.PI / 5) + 1) / 2; wordMats[i].color.setRGB(1, 1 - mx * 0.32, 1 - mx * 0.18); }
+    const hy = RY / 2;
+    for (let i = 0; i &lt; items.length; i++) { const it = items[i]; it.mesh.position.y -= it.speed; if (it.mesh.position.y &lt; -hy) { it.mesh.position.y = hy; it.mesh.position.x = (Math.random() - 0.5) * RX; it.mesh.position.z = (Math.random() - 0.5) * RZ; } }
+    dust.rotation.y = -el * 0.004; deep.rotation.y = el * 0.006; mid.rotation.y = -el * 0.01; near.rotation.x = el * 0.008;
+    if (flying) {
+      const k = Math.min(1, (performance.now() - t0 - 500) / 4200), e = k &lt;= 0 ? 0 : 1 - Math.pow(1 - k, 3);
+      camera.position.lerpVectors(FROM, TO, e); camera.lookAt(0, 0, 0);
+      if (k &gt;= 1) { flying = false; controls.enabled = true; controls.update(); }
+    } else controls.update();
+    renderer.render(scene, camera);
+  }
+  frame3();
+  addEventListener(&quot;resize&quot;, () =&gt; { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+  document.addEventListener(&quot;visibilitychange&quot;, () =&gt; { if (document.hidden) { cancelAnimationFrame(raf); raf = 0; } else if (!raf) { clock.getDelta(); frame3(); } });
+}
+async function s5(id) {
+  const t = document.createElement(&quot;div&quot;); t.className = &quot;ting&quot;; t.textContent = &quot;ting ting số dư neee&quot;; actEl.appendChild(t);
+  tingSound(); try { if (navigator.vibrate) navigator.vibrate([60, 40, 60]); } catch (e) {}
+  const c = center(t); sticker(c[0], c[1] - 24, &quot;sparkle&quot;); burst(c[0], c[1], 30, [&quot;gold&quot;, &quot;white&quot;], 1.2);
+  for (let i = 0; i &lt; 5; i++) setTimeout(() =&gt; sticker(c[0] + rnd(-90, 90), c[1] + rnd(-50, 30), &quot;sparkle&quot;), i * 160);
+  await sleep(3200); guard(id); t.classList.add(&quot;off&quot;); await sleep(900); guard(id); actClear();
+  let ok = true; try { await load3d(); } catch (e) { ok = false; }
+  if (ok &amp;&amp; window.THREE &amp;&amp; THREE.OrbitControls) { try { run3d(); } catch (e) { ok = false; console.error(e); } } else ok = false;
+  if (!ok) await say(&quot;Ha ở đây với quỳnh nè 💝&quot;, { hold: 0 });
+  await new Promise(() =&gt; {}); /* cảnh cuối: ở lại đây, không có nút xem lại */
+}
+
+const SCENES = [s0, s1, s2, s3, s4, s5];
 async function start() {
   const id = ++RUN; reset();
   try { for (let i = 0; i &lt; SCENES.length; i++) { await SCENES[i](id); guard(id); } } catch (e) { if (e !== ABORT) console.error(e); return; }
-  actClear(); const again = addBtn(&quot;Xem lại từ đầu&quot;); await waitEl(again); start();
+  actClear();
 }
 requestAnimationFrame(frame);
 /* Khi nằm trong trang mật mã: chờ báo mở khóa rồi mới bắt đầu */
