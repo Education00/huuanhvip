@@ -23,7 +23,6 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 <body>
 <div id="stage"></div>
 <div id="fallback">Ha ở đây với quỳnh nè 💝</div>
-<div id="hint">vuốt để xoay nè</div>
 <div id="veil"></div>
 <audio id="bgm" loop preload="auto"></audio>
 
@@ -53,7 +52,7 @@ function add(src) { return new Promise((res, rej) => { const el = document.creat
 function loadThree() { return add("https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js").then(() => add("https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js")); }
 
 function run3d() {
-  const host = $("#stage"), hint3 = $("#hint"), mobile = matchMedia("(pointer: coarse)").matches || innerWidth < 700, K = mobile ? 0.5 : 1;
+  const host = $("#stage"), mobile = matchMedia("(pointer: coarse)").matches || innerWidth < 700, K = mobile ? 0.5 : 1;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 2000);
   const FROM = new THREE.Vector3(260, -40, 380), TO = new THREE.Vector3(75, -12, 105);
@@ -119,7 +118,7 @@ function run3d() {
   addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
   document.addEventListener("visibilitychange", () => { if (document.hidden) { cancelAnimationFrame(raf); raf = 0; } else if (!raf) { clock.getDelta(); frame3(); } });
   /* bắt đầu bay camera đúng lúc màn đêm mở ra */
-  return () => { t0 = performance.now(); frame3(); setTimeout(() => hint3.classList.add("show"), 5200); setTimeout(() => hint3.classList.remove("show"), 11000); };
+  return () => { t0 = performance.now(); frame3(); };
 }
 
 (async function main() {

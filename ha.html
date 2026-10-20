@@ -1,6 +1,7 @@
 <!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#05070f"><meta name="color-scheme" content="dark">
 <link rel="prefetch" href="chu-roi.html">
+<script>setTimeout(function(){var v=document.getElementById("veil");if(v)v.classList.add("off")},4500)</script>
 <style>:root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{background:#05070f}body{margin:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
 #veil{position:fixed;inset:-2px;z-index:9999;background:radial-gradient(ellipse at 50% 40%,#0b1226 0%,#05070f 70%);opacity:1;transition:opacity .9s ease;pointer-events:none}#veil.off{opacity:0}</style></head><body>
 <div id="veil"></div>
@@ -549,7 +550,25 @@ async function sayAll(arr, o) { for (const t of arr) await say(t, o); }
 lineEl.addEventListener("click", () => { if (typeChars.length) finishType(); });
 
 /* ---------- Nền, cảm xúc, Ha ---------- */
-function bg(name) { document.querySelectorAll(".bg").forEach((b) => b.classList.toggle("on", b.dataset.b === name)); }
+/* thanh trình duyệt (trên/dưới) đổi màu theo từng cảnh để phủ kín màn hình */
+const BAR = { night: ["#05070f", "#05070f"], pink: ["#2a0b3a", "#14061c"], field: ["#02131f", "#06223a"], stars: ["#0a0820", "#2a0f4d"], green: ["#042814", "#031a0d"], blue: ["#0e2f6e", "#03061a"], plane: ["#050a22", "#0b1a4d"], planet: ["#060a2a", "#1a2a7a"] };
+let barCur = [[5, 7, 15], [5, 7, 15]], barRaf = 0;
+const hex3 = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+function barTo(name) {
+  const tg = BAR[name]; if (!tg) return;
+  const from = barCur.map((a) => a.slice()), to = tg.map(hex3), t0 = performance.now();
+  let tc = document.querySelector('meta[name="theme-color"]'); if (!tc) { tc = document.createElement("meta"); tc.name = "theme-color"; document.head.appendChild(tc); }
+  cancelAnimationFrame(barRaf);
+  (function step(now) {
+    const k = Math.min(1, (now - t0) / 1400);
+    barCur = from.map((f, i) => f.map((v, j) => v + (to[i][j] - v) * k));
+    const c = barCur.map((a) => "rgb(" + a.map(Math.round).join(",") + ")");
+    const h = document.documentElement.style; h.background = "linear-gradient(180deg," + c[0] + "," + c[1] + ")"; h.backgroundSize = "100% 100%"; h.backgroundRepeat = "no-repeat";
+    tc.setAttribute("content", c[0]);
+    if (k < 1) barRaf = requestAnimationFrame(step);
+  })(t0);
+}
+function bg(name) { document.querySelectorAll(".bg").forEach((b) => b.classList.toggle("on", b.dataset.b === name)); barTo(name); }
 const bot = $("#bot");
 function mood(m) { bot.classList.remove("m-happy", "m-excited", "m-hide"); if (m) bot.classList.add("m-" + m); }
 function showBot(on) { bot.classList.toggle("hide", !on); if (on && bot.classList.contains("m-hide")) mood(""); }
@@ -989,17 +1008,7 @@ function buildFinal() {
 
 /* ---------- Chạy ---------- */
 
-/* ---------- Cảnh cuối: ting ting rồi sang trang chữ rơi (chu-roi.html) ---------- */
-function tingSound() {
-  try {
-    const A = window.AudioContext || window.webkitAudioContext; const ac = new A(); if (ac.resume) ac.resume();
-    [[1318, 0], [1760, 0.12]].forEach((p) => {
-      const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + p[1];
-      o.type = "sine"; o.frequency.value = p[0]; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
-      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + 1);
-    });
-  } catch (e) {}
-}
+/* ---------- Cảnh cuối: sang trang chữ rơi (chu-roi.html) ---------- */
 let THREE_P = null;
 function load3d() {   /* chỉ để tải trước thư viện 3D vào bộ nhớ đệm cho trang sau */
   if (THREE_P) return THREE_P;
@@ -1009,13 +1018,9 @@ function load3d() {   /* chỉ để tải trước thư viện 3D vào bộ nh�
   return THREE_P;
 }
 async function s5(id) {
-  const t = document.createElement("div"); t.className = "ting"; t.textContent = "ting ting số dư neee"; actEl.appendChild(t);
-  tingSound(); try { if (navigator.vibrate) navigator.vibrate([60, 40, 60]); } catch (e) {}
-  const c = center(t); sticker(c[0], c[1] - 24, "sparkle"); burst(c[0], c[1], 30, ["gold", "white"], 1.2);
-  for (let i = 0; i < 5; i++) setTimeout(() => sticker(c[0] + rnd(-90, 90), c[1] + rnd(-50, 30), "sparkle"), i * 160);
-  await sleep(3200); guard(id); t.classList.add("off"); await sleep(600); guard(id);
+  await sleep(800); guard(id);
   await Promise.race([load3d().catch(() => {}), sleep(3500)]); guard(id);       /* đợi thư viện 3D tải xong (tối đa 3,5s) */
-  const v = $("#veil"); v.classList.remove("off"); await sleep(1000);            /* màn đêm phủ dần (nhạc vẫn chạy) */
+  barTo("night"); const v = $("#veil"); v.classList.remove("off"); await sleep(1000);            /* màn đêm phủ dần (nhạc vẫn chạy) */
   try { sessionStorage.setItem("haMusicT", String(bgm.currentTime || 0)); sessionStorage.setItem("haMusicP", isPlaying() ? "1" : "0"); } catch (e) {}
   location.replace(CONFIG.next);
   await new Promise(() => {});

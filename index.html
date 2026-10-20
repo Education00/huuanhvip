@@ -315,19 +315,24 @@ let nextReady = false, waiting = false;
 function warmNext() {
   if (!CONFIG.nextUrl) { nextReady = true; return; }
   fetch(CONFIG.nextUrl).then((r) => r.text()).then(() => { nextReady = true; if (waiting) { waiting = false; goNext(); } }).catch(() => { nextReady = true; if (waiting) { waiting = false; goNext(); } });
-  fetch(CONFIG.music || "music.mp3").catch(() => {});      /* hâm nóng nhạc vào bộ nhớ đệm */
 }
 function revealHa() {
   if (!nextReady) { waiting = true; const b = $("#bloom"); if (b) b.classList.add("wait"); setTimeout(() => { if (waiting) { waiting = false; goNext(); } }, 8000); return; }
   goNext();
 }
-function goNext() {
-  /* thanh trình duyệt: đổi sang màu đêm ngay trước khi chuyển trang */
+function barsDark() {      /* thanh trình duyệt: đổi sang màu đêm */
   document.documentElement.style.background = "#05070f"; document.body.style.background = "#05070f";
   const cs = document.querySelector('meta[name="color-scheme"]'); if (cs) cs.setAttribute("content", "dark");
-  const tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.setAttribute("content", "#05070f");
-  stop();
-  if (CONFIG.nextUrl) location.replace(CONFIG.nextUrl);
+  let tc = document.querySelector('meta[name="theme-color"]');
+  if (!tc) { tc = document.createElement("meta"); tc.name = "theme-color"; document.head.appendChild(tc); }
+  tc.setAttribute("content", "#05070f");
+  void document.documentElement.offsetHeight;
+}
+let wentNext = false;
+function goNext() {
+  if (wentNext) return; wentNext = true;
+  barsDark(); stop();
+  if (CONFIG.nextUrl) { location.replace(CONFIG.nextUrl); setTimeout(() => { location.href = CONFIG.nextUrl; }, 5000); }   /* phòng khi lần chuyển đầu bị kẹt */
 }
 let unlocked = false;
 function success() {
@@ -336,6 +341,7 @@ function success() {
   if (!still) card.animate([{ transform: "scale(1)" }, { transform: "scale(.965)" }, { transform: "scale(1)" }], { duration: 360, easing: "ease-out" });
   setTimeout(() => { $("#bloom").classList.add("go"); if (!still) { start(); burst(); setTimeout(stop, 1800); } }, 260);
   /* trái tim đã phủ kín và chìm vào màu đêm -> mở Ha ngay bên dưới, liền mạch */
+  setTimeout(barsDark, 1300);   /* hồng đã phủ kín: đổi thanh trình duyệt sang đêm */
   setTimeout(revealHa, 2250);
 }
 addEventListener("keydown", (e) => {
